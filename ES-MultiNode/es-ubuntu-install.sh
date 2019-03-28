@@ -184,6 +184,7 @@ else
 fi
 
 echo "#################### Configuring ES service ####################"
+rm -f /etc/elasticsearch/elasticseach.yml
 echo "cluster.name: $cluster_name" >> /etc/elasticsearch/elasticsearch.yml
 echo "node.name: ${HOSTNAME}" >> /etc/elasticsearch/elasticsearch.yml
 echo "gateway.expected_nodes: ${cluster_node_count}" >> /etc/elasticsearch/elasticsearch.yml
@@ -207,7 +208,7 @@ sudo systemctl enable nginx
 echo "#################### Configuring nginx ####################"
 sudo apt-get -qy install apache2-utils
 printf '%s' "$es_user_password" | sudo htpasswd -ic /etc/nginx/conf.d/elasticsearch.pwd $es_user_name
-config_fetch_cmd='curl -s https://raw.githubusercontent.com/Azure/azure-diagnostics-tools/master/ES-MultiNode/elasticsearch.nginx | perl -wnlp -e s/__ES_DNS_NAME/'
+config_fetch_cmd='curl -s https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/elasticsearch.nginx | perl -wnlp -e s/__ES_DNS_NAME/'
 config_fetch_cmd+="$es_dns_name"
 config_fetch_cmd+='/g > elasticsearch.nginx.conf'
 eval "$config_fetch_cmd"
@@ -222,7 +223,7 @@ sudo wget "https://artifacts.elastic.co/downloads/kibana/kibana-${kibana_version
 sudo tar xvf kibana-*.tar.gz 1>/dev/null
 sudo mkdir -p /opt/kibana
 sudo cp -R ./kibana-*/* /opt/kibana
-sudo wget https://raw.githubusercontent.com/Azure/azure-diagnostics-tools/master/ES-MultiNode/kibana5.service
+sudo wget https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/kibana5.service
 sudo cp ./kibana5.service /etc/systemd/system/kibana5.service
 sudo systemctl daemon-reload
 sudo systemctl enable kibana5.service
@@ -244,8 +245,8 @@ sudo mkdir -p /etc/systemd/system/elasticsearch.service.d
 printf "\n[Service]\nLimitMEMLOCK=infinity\n" | sudo tee -a /etc/systemd/system/elasticsearch.service.d/elasticsearch.conf > /dev/null
 
 echo "#################### Installing X-pack plugin ####################"
-sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install x-pack --batch
-sudo /opt/kibana/bin/kibana-plugin install x-pack --quiet
+#sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install x-pack --batch
+#sudo /opt/kibana/bin/kibana-plugin install x-pack --quiet
 
 # Disable all features that require paid subscription
 # Monitoring is left enabled--requires a free Basic License
