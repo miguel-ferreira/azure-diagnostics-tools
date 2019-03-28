@@ -184,7 +184,7 @@ else
 fi
 
 echo "#################### Configuring ES service ####################"
-sed "s/path\.data:.*//" /etc/elasticsearch/elasticsearch.yml
+sed -i "s/path\.data:.*//" /etc/elasticsearch/elasticsearch.yml
 echo "cluster.name: $cluster_name" >> /etc/elasticsearch/elasticsearch.yml
 echo "node.name: ${HOSTNAME}" >> /etc/elasticsearch/elasticsearch.yml
 echo "gateway.expected_nodes: ${cluster_node_count}" >> /etc/elasticsearch/elasticsearch.yml
