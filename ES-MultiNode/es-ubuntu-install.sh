@@ -221,7 +221,7 @@ echo "#################### Installing Kibana ####################"
 sudo wget "https://artifacts.elastic.co/downloads/kibana/kibana-${kibana_version}-linux-x86_64.tar.gz"
 sudo tar xvf kibana-*.tar.gz 1>/dev/null
 sudo mkdir -p /opt/kibana
-sudo cp -R ./kibana-5*/* /opt/kibana
+sudo cp -R ./kibana-*/* /opt/kibana
 sudo wget https://raw.githubusercontent.com/Azure/azure-diagnostics-tools/master/ES-MultiNode/kibana5.service
 sudo cp ./kibana5.service /etc/systemd/system/kibana5.service
 sudo systemctl daemon-reload
