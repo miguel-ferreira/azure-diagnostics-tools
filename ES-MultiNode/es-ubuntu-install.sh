@@ -208,6 +208,7 @@ sudo systemctl enable nginx
 echo "#################### Configuring nginx ####################"
 sudo apt-get -qy install apache2-utils
 printf '%s' "$es_user_password" | sudo htpasswd -ic /etc/nginx/conf.d/elasticsearch.pwd $es_user_name
+#sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/cert.key -out /etc/nginx/cert.crt -subj "/C=NL/ST=Zuid Holland/L=Rotterdam/O=Sparkling Network/OU=IT Department/CN=ssl.raymii.org"
 config_fetch_cmd='curl -s https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/elasticsearch.nginx | perl -wnlp -e s/__ES_DNS_NAME/'
 config_fetch_cmd+="$es_dns_name"
 config_fetch_cmd+='/g > elasticsearch.nginx.conf'
