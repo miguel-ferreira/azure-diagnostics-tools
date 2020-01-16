@@ -1,7 +1,7 @@
 # nginx proxy configuration for ES cluster node (running ES and Kibana)
 
 server { 
-    listen 80;
+    listen 443;
     server_name __ES_DNS_NAME;
     proxy_http_version 1.1;
 
@@ -13,11 +13,17 @@ server {
     proxy_set_header  X-Real-IP  $remote_addr;
     proxy_set_header  X-Forwarded-For $proxy_add_x_forwarded_for;
     proxy_set_header  Host $http_host;
+
+    ssl on;
+    ssl_session_cache  builtin:1000  shared:SSL:10m;
+    ssl_protocols  TLSv1 TLSv1.1 TLSv1.2;
+    ssl_ciphers HIGH:!aNULL:!eNULL:!EXPORT:!CAMELLIA:!DES:!MD5:!PSK:!RC4;
+    ssl_prefer_server_ciphers on;
     
     # Special-casing head plugin which uses HTML-based redirects through http-equiv refresh
     location /_plugin/head {
         proxy_pass http://localhost:9200/_plugin/head;
-        proxy_redirect http://localhost:9200/_plugin/head http://__ES_DNS_NAME/es/_plugin/head;
+        proxy_redirect http://localhost:9200/_plugin/head https://__ES_DNS_NAME/es/_plugin/head;
     }
 
     location /es {        
@@ -25,11 +31,11 @@ server {
         rewrite ^/es$ / break;
 
         proxy_pass http://localhost:9200;
-        proxy_redirect http://localhost:9200 http://__ES_DNS_NAME/es;
+        proxy_redirect http://localhost:9200 https://__ES_DNS_NAME/es;
     }
    
     location / {  
         proxy_pass http://localhost:5601;
-        proxy_redirect http://localhost:5601 http://__ES_DNS_NAME;
+        proxy_redirect http://localhost:5601 https://__ES_DNS_NAME;
     }
 }
