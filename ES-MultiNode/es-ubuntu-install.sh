@@ -158,7 +158,7 @@ echo "#################### Setting up data disks ####################"
 bash vm-disk-utils-0.1.sh
 
 echo "#################### Installing ES service ####################"
-sudo wget "https://artifacts.elastic.co/downloads/elasticsearch/elasticsearch-$es_version.deb" -O elasticsearch.deb
+sudo wget "https://download.elastic.co/elasticsearch/elasticsearch/elasticsearch-$es_version.deb" -O elasticsearch.deb
 sudo dpkg -i --force-all elasticsearch.deb
 sudo systemctl daemon-reload
 sudo systemctl enable elasticsearch.service
@@ -218,19 +218,19 @@ sudo rm /etc/nginx/sites-enabled/default
 sudo systemctl reload nginx
 
 
-echo "#################### Installing Kibana ####################"
-sudo wget "https://artifacts.elastic.co/downloads/kibana/kibana-${kibana_version}-linux-x86_64.tar.gz"
-sudo tar xvf kibana-*.tar.gz 1>/dev/null
-sudo mkdir -p /opt/kibana
-sudo cp -R ./kibana-*/* /opt/kibana
-sudo wget https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/kibana5.service
-sudo cp ./kibana5.service /etc/systemd/system/kibana5.service
-sudo systemctl daemon-reload
-sudo systemctl enable kibana5.service
-sudo mkdir -p /var/log/kibana
-printf "\n\nlogging.dest: /var/log/kibana/kibana.log\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
+#echo "#################### Installing Kibana ####################"
+#sudo wget "https://artifacts.elastic.co/downloads/kibana/kibana-${kibana_version}-linux-x86_64.tar.gz"
+#sudo tar xvf kibana-*.tar.gz 1>/dev/null
+#sudo mkdir -p /opt/kibana
+#sudo cp -R ./kibana-*/* /opt/kibana
+#sudo wget https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/kibana5.service
+#sudo cp ./kibana5.service /etc/systemd/system/kibana5.service
+#sudo systemctl daemon-reload
+#sudo systemctl enable kibana5.service
+#sudo mkdir -p /var/log/kibana
+#printf "\n\nlogging.dest: /var/log/kibana/kibana.log\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
 # ES can take a while to start up, so increase the Kibana startup timeout to 2 minutes
-printf "elasticsearch.startupTimeout: 120000\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
+#printf "elasticsearch.startupTimeout: 120000\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
 
 
 echo "#################### Optimizing the system ####################"
@@ -251,10 +251,10 @@ echo "#################### Installing X-pack plugin ####################"
 # Disable all features that require paid subscription
 # Monitoring is left enabled--requires a free Basic License
 sudo systemctl stop elasticsearch.service
-printf "\nxpack.security.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
-printf "xpack.graph.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
+printf "\nxpack.security.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml > /dev/null #| sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
+printf "xpack.graph.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml > /dev/null #| sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
 printf "xpack.watcher.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml > /dev/null
-printf "xpack.reporting.enabled: false\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
+#printf "xpack.reporting.enabled: false\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
 
 echo "#################### Starting Elasticsearch and Kibana ####################"
 sudo systemctl daemon-reload
@@ -266,6 +266,6 @@ if [[ $? -ne 0 ]]; then
     exit 5
 fi
 
-sudo systemctl start kibana5.service
+#sudo systemctl start kibana5.service
 
 exit 0
