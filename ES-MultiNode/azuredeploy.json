@@ -101,7 +101,21 @@
         "Standard_F8S",
         "Standard_F16S"
       ]
-    }
+    },
+     "esVersion": {
+       "type": "string",
+       "defaultValue": "5.6.0",
+       "metadata": {
+         "description": "ElasticSearch version number"
+       }
+     },
+     "kibanaVersion": {
+       "type": "string",
+       "defaultValue": "5.6.0",
+       "metadata": {
+         "description": "ElasticSearch version number"
+      }
+     }
   },
 
 
@@ -129,8 +143,8 @@
     "imageOffer": "UbuntuServer",
     "ubuntuOSVersion": "16.04.0-LTS",
     "sharedStorageAccountName": "[concat('storage', uniqueString(resourceGroup().id))]",
-    "esVersion": "6.7.0",
-    "kibanaVersion": "6.7.0",
+    "esVersion": "parameters('esVersion')",
+    "kibanaVersion": "parameters('kibanaVersion')",
     "esClusterDnsName": "[concat(parameters('dnsNameForLoadBalancerIP'), '.', parameters('dnsDomainForLoadBalancerIP'))]",
     "adminNodeNicName": "adminNodeNic"
   },
