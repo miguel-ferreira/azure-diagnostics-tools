@@ -38,7 +38,7 @@
       "type": "string",
       "defaultValue": "256",
       "metadata": {
-        "description": "Size of data disks in data nodes (in GB). Four data disks will be provisioned"
+        "description": "Size of data disks in data nodes (in GB)."
       }
     },
     "esUserName": {
@@ -226,8 +226,8 @@
                 "id": "[concat(resourceId('Microsoft.Network/loadBalancers',variables('loadBalancerName')),'/backendAddressPools/LBBE')]"
               },
               "protocol": "tcp",
-              "frontendPort": 80,
-              "backendPort": 80,
+              "frontendPort": 443,
+              "backendPort": 443,
               "enableFloatingIP": false,
               "idleTimeoutInMinutes": 5,
               "probe": {
@@ -241,7 +241,7 @@
             "name": "esProbe",
             "properties": {
               "protocol": "tcp",
-              "port": 80,
+              "port": 443,
               "intervalInSeconds": 5,
               "numberOfProbes": 2
             }
@@ -346,36 +346,6 @@
               },
               "caching": "None",
               "createOption": "Empty"
-            },
-            {
-              "name": "datadisk2",
-              "diskSizeGB": "[parameters('dataDiskSize')]",
-              "lun": 1,
-              "vhd": {
-                "uri": "[concat('http://',variables('sharedStorageAccountName'),'.blob.core.windows.net/vhds/', parameters('dnsNameForLoadBalancerIP'), copyindex(1), '-data2.vhd')]"
-              },
-              "caching": "None",
-              "createOption": "Empty"
-            },
-            {
-              "name": "datadisk3",
-              "diskSizeGB": "[parameters('dataDiskSize')]",
-              "lun": 2,
-              "vhd": {
-                "uri": "[concat('http://',variables('sharedStorageAccountName'),'.blob.core.windows.net/vhds/', parameters('dnsNameForLoadBalancerIP'), copyindex(1), '-data3.vhd')]"
-              },
-              "caching": "None",
-              "createOption": "Empty"
-            },
-            {
-              "name": "datadisk4",
-              "diskSizeGB": "[parameters('dataDiskSize')]",
-              "lun": 3,
-              "vhd": {
-                "uri": "[concat('http://',variables('sharedStorageAccountName'),'.blob.core.windows.net/vhds/', parameters('dnsNameForLoadBalancerIP'), copyindex(1), '-data4.vhd')]"
-              },
-              "caching": "None",
-              "createOption": "Empty"
             }
           ]
         },
@@ -411,7 +381,7 @@
             "https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/es-ubuntu-install.sh",
             "https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/vm-disk-utils-0.1.sh"
           ],
-          "commandToExecute": "[concat('bash es-ubuntu-install.sh ', ' -n ', parameters('dnsNameForLoadBalancerIP'), ' -d ', variables('dataNodesIpPrefix'), '4 -c ', parameters('dataNodeCount'), ' -v ', variables('esVersion'), ' -u ', parameters('esUserName'), ' -p ', parameters('esPassword'), ' -s ', variables('esClusterDnsName'), ' -k ', variables('kibanaVersion'))]"
+          "commandToExecute": "[concat('bash es-ubuntu-install.sh ', ' -n ', parameters('dnsNameForLoadBalancerIP'), ' -d ', variables('dataNodesIpPrefix'), ' -c ', parameters('dataNodeCount'), ' -v ', variables('esVersion'), ' -u ', parameters('esUserName'), ' -p ', parameters('esPassword'), ' -s ', variables('esClusterDnsName'), ' -k ', variables('kibanaVersion'))]"
         }
       }
     },
