@@ -35,7 +35,6 @@ Parameters:
   -d <Static discovery endpoint start address> e.g. 10.0.1.4
   -c <Count of cluster nodes>
   -v <ElasticSearch version> e.g. 2.2.1
-  -k <Kibana version> e.g. 4.1.1. 
   -u <ElasticSearch user name>
   -p <ElasticSearch user password>
   -s <ElasticSearch cluster DNS name> (to configure nginx proxy)
@@ -98,7 +97,6 @@ echo "#################### Installing ElasticSearch on ${HOSTNAME} #############
 
 cluster_name="kocour"
 es_version="5.1.1"
-kibana_version="5.1.1"
 starting_discovery_endpoint="10.0.1.4"
 declare -i cluster_node_count=3
 es_user_name=''
@@ -106,7 +104,7 @@ es_user_password=''
 es_dns_name=''
 export DEBIAN_FRONTEND='noninteractive'
 
-while getopts n:d:c:v:u:p:s:k:h optname; do    
+while getopts n:d:c:v:u:p:s:h optname; do    
   case $optname in
     n) 
       cluster_name=${OPTARG}
@@ -119,9 +117,6 @@ while getopts n:d:c:v:u:p:s:k:h optname; do
       ;;
     v) 
       es_version=${OPTARG}
-      ;;
-    k)
-      kibana_version=${OPTARG}
       ;;
     u)
       es_user_name=${OPTARG}
@@ -199,6 +194,7 @@ echo "bootstrap.memory_lock: true" >> /etc/elasticsearch/elasticsearch.yml
 echo "node.master: true" >> /etc/elasticsearch/elasticsearch.yml
 echo "node.data: true" >> /etc/elasticsearch/elasticsearch.yml
 echo "network.host: [_site_, _local_]" >> /etc/elasticsearch/elasticsearch.yml
+sed -i 's/es.logger.level: INFO/es.logger.level: OFF/g' /etc/elasticsearch/logging.yml
 
 echo "#################### Installing nginx ####################"
 sudo apt-get -qy install nginx
@@ -208,7 +204,6 @@ sudo systemctl enable nginx
 echo "#################### Configuring nginx ####################"
 sudo apt-get -qy install apache2-utils
 printf '%s' "$es_user_password" | sudo htpasswd -ic /etc/nginx/conf.d/elasticsearch.pwd $es_user_name
-#sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/nginx/cert.key -out /etc/nginx/cert.crt -subj "/C=NL/ST=Zuid Holland/L=Rotterdam/O=Sparkling Network/OU=IT Department/CN=ssl.raymii.org"
 config_fetch_cmd='curl -s https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/elasticsearch.nginx | perl -wnlp -e s/__ES_DNS_NAME/'
 config_fetch_cmd+="$es_dns_name"
 config_fetch_cmd+='/g > elasticsearch.nginx.conf'
@@ -218,55 +213,25 @@ sudo ln /etc/nginx/sites-available/elasticsearch /etc/nginx/sites-enabled
 sudo rm /etc/nginx/sites-enabled/default
 sudo systemctl reload nginx
 
-
-#echo "#################### Installing Kibana ####################"
-#sudo wget "https://artifacts.elastic.co/downloads/kibana/kibana-${kibana_version}-linux-x86_64.tar.gz"
-#sudo tar xvf kibana-*.tar.gz 1>/dev/null
-#sudo mkdir -p /opt/kibana
-#sudo cp -R ./kibana-*/* /opt/kibana
-#sudo wget https://raw.githubusercontent.com/miguel-ferreira/azure-diagnostics-tools/master/ES-MultiNode/kibana5.service
-#sudo cp ./kibana5.service /etc/systemd/system/kibana5.service
-#sudo systemctl daemon-reload
-#sudo systemctl enable kibana5.service
-#sudo mkdir -p /var/log/kibana
-#printf "\n\nlogging.dest: /var/log/kibana/kibana.log\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
-# ES can take a while to start up, so increase the Kibana startup timeout to 2 minutes
-#printf "elasticsearch.startupTimeout: 120000\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
-
-
 echo "#################### Optimizing the system ####################"
 # Set Elasticsearch heap size to 50% of system memory
 # Consider: Move this to an init.d script so we can handle instance size increases
 es_heap_size=$(free -m |grep Mem | awk '{if ($2/2 >31744)  print 31744;else print $2/2;}')
-printf "\nES_HEAP_SIZE=%sm\n" $es_heap_size | sudo tee -a /etc/default/elasticseach > /dev/null
+printf "\nES_HEAP_SIZE=%sm\n" $es_heap_size | sudo tee -a /etc/default/elasticsearch > /dev/null
 printf "MAX_LOCKED_MEMORY=unlimited\n" | sudo tee -a /etc/default/elasticsearch > /dev/null
 printf "\nelasticsearch - nofile 65536" | sudo tee -a /etc/security/limits.conf > /dev/null
 printf "\nelasticsearch  - memlock unlimited" | sudo tee -a /etc/security/limits.conf > /dev/null
 sudo mkdir -p /etc/systemd/system/elasticsearch.service.d
 printf "\n[Service]\nLimitMEMLOCK=infinity\n" | sudo tee -a /etc/systemd/system/elasticsearch.service.d/elasticsearch.conf > /dev/null
 
-echo "#################### Installing X-pack plugin ####################"
-#sudo /usr/share/elasticsearch/bin/elasticsearch-plugin install x-pack --batch
-#sudo /opt/kibana/bin/kibana-plugin install x-pack --quiet
-
-# Disable all features that require paid subscription
-# Monitoring is left enabled--requires a free Basic License
-sudo systemctl stop elasticsearch.service
-printf "\nxpack.security.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml > /dev/null #| sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
-printf "xpack.graph.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml > /dev/null #| sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
-printf "xpack.watcher.enabled: false\n" | sudo tee -a /etc/elasticsearch/elasticsearch.yml > /dev/null
-#printf "xpack.reporting.enabled: false\n" | sudo tee -a /opt/kibana/config/kibana.yml > /dev/null
-
-echo "#################### Starting Elasticsearch and Kibana ####################"
+echo "#################### Starting Elasticsearch ####################"
 sudo systemctl daemon-reload
 sudo systemctl start elasticsearch.service
 
 wait_for_elastic_svc;
 if [[ $? -ne 0 ]]; then
-    echo "ElasticSearch service has not started within expected time period. Cannot start Kibana service or install ES head plugin." >&2
+    echo "ElasticSearch service has not started within expected time period." >&2
     exit 5
 fi
-
-#sudo systemctl start kibana5.service
 
 exit 0
